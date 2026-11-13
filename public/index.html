@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#12565f">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Sistema de gestión de mantenimiento de edificios</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f4f3;--sf:#fff;--tx:#14262b;--mu:#5d6f73;--ln:#d5dcdb;--ac:#12565f;--acx:#fff;--hz:#f2b705;--ok:#1f7a4d;--bad:#b3322b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1b1e;--sf:#16282c;--tx:#e8efee;--mu:#93a8ab;--ln:#2a4146;--ac:#5cc0c9;--acx:#08181b;--ok:#5fd09a;--bad:#ff8d85;color-scheme:dark}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 Figtree,system-ui,sans-serif}
+h1,h2,h3{font-family:'Bricolage Grotesque',Figtree,sans-serif;margin:0;line-height:1.15}
+main{max-width:900px;margin:0 auto;padding:16px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:8px;padding:14px;margin-bottom:12px}
+.card h3{font-size:1.05rem;margin-bottom:4px}
+.meta{color:var(--mu);font-size:.85rem}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+button.b,.row button{background:var(--ac);color:var(--acx);border:0;border-radius:6px;padding:8px 12px;font:600 .9rem Figtree,sans-serif;cursor:pointer}
+button.g{background:none;color:var(--ac);border:1px solid var(--ac)}
+select,input,textarea{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--ln);border-radius:6px;padding:8px;max-width:100%}
+label{display:block;font-weight:600;font-size:.9rem;margin-bottom:10px}label input,label select,label textarea{display:block;width:100%;margin-top:4px;font-weight:400}
+.tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:.78rem;font-weight:600;border:1px solid var(--ln);margin:0 4px 4px 0}
+.c-Crítica{background:var(--bad);color:#fff;border-color:var(--bad)}.c-Alta{background:var(--hz);color:#14262b;border-color:var(--hz)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:14px}
+.stats div{background:var(--sf);border:1px solid var(--ln);border-radius:8px;padding:10px}.stats b{font:800 1.6rem 'Bricolage Grotesque',sans-serif;display:block}
+.dlg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:9}
+.dlg>form,.dlg>div{background:var(--sf);width:min(520px,100%);max-height:90%;overflow:auto;padding:16px;border-radius:12px 12px 0 0}
+.scroll{overflow-x:auto}
+[hidden]{display:none!important}
+.top{position:sticky;top:0;z-index:5;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+header{background:linear-gradient(120deg,#0d4249,#12565f 60%,#1b7a85);color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:10px}.brand h1{font-size:1.05rem;color:#fff}.brand small,.wn small{display:block;opacity:.8;font-size:.75rem}
+.who{display:flex;align-items:center;gap:10px}
+.av{width:36px;height:36px;border-radius:50%;background:var(--hz);color:#14262b;display:grid;place-items:center;font:800 .85rem 'Bricolage Grotesque',sans-serif}
+.wn{line-height:1.15;font-size:.9rem}.wn b{display:block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.out{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:99px;padding:6px 12px;font:600 .85rem Figtree,sans-serif;cursor:pointer}
+nav{display:flex;gap:6px;overflow-x:auto;padding:8px 12px;background:var(--sf);border-bottom:1px solid var(--ln)}
+nav button{display:flex;align-items:center;gap:7px;white-space:nowrap;background:none;border:1px solid transparent;color:var(--mu);padding:8px 14px;border-radius:99px;font:600 .92rem Figtree,sans-serif;cursor:pointer}
+nav button:hover{background:var(--bg)}nav button.on{background:var(--ac);color:var(--acx)}
+.login{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
+.hero{background:linear-gradient(160deg,#0d4249,#12565f 55%,#1b7a85);color:#fff;padding:40px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:14px}
+.hero svg{width:100%;max-width:440px;height:auto}.hero h1{font-size:2rem;color:#fff}.hero p{opacity:.9;margin:0;max-width:420px}
+.lbox{padding:32px 24px;display:flex;flex-direction:column;justify-content:center;max-width:460px;width:100%;margin:0 auto}
+.seg{display:flex;background:var(--bg);border-radius:99px;padding:4px;margin-bottom:16px}
+.seg button{flex:1;border:0;background:none;color:var(--mu);padding:9px;border-radius:99px;font:600 .92rem Figtree,sans-serif;cursor:pointer}
+.seg button.on{background:var(--sf);color:var(--ac);box-shadow:0 1px 4px rgba(0,0,0,.18)}
+@media(max-width:760px){.login{grid-template-columns:1fr}.hero{padding:22px 20px}.hero svg{max-width:240px}.hero h1{font-size:1.45rem}.wn,.out span{display:none}.out{padding:8px}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const now=()=>new Date().toLocaleString('es');
+const CRIT=['Sin clasificar','Baja','Media','Alta','Crítica'],PRIO=['Baja','Media','Alta','Urgente'],EST=['Pendiente','Asignada','En reparación','Solucionada','Cerrada'];
+let S={users:[],equipos:[],inc:[],mant:[],rep:[]},me=null,tab='inc';
+let tok=null;
+const api=async(m,u,b)=>{const r=await fetch('/api'+u,{method:m,headers:{'Content-Type':'application/json',Authorization:tok||''},body:b?JSON.stringify(b):undefined});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Error del servidor');return j};
+const load=async()=>{S=await api('GET','/data')};
+const fx=async f=>{try{await f();await load();render()}catch(e){alert(e.message)}};
+const U=id=>S.users.find(u=>u.id==id),EQ=id=>S.equipos.find(e=>e.id==id);
+const opts=(a,sel)=>a.map(o=>{const[v,l]=Array.isArray(o)?o:[o,o];return`<option value="${esc(v)}"${v==sel?' selected':''}>${esc(l)}</option>`}).join('');
+const techs=()=>S.users.filter(u=>u.rol=='Técnico').map(u=>[u.id,u.nombre]);
+function field(f){const r=f.r?' required':'';
+if(f.t=='select')return`<label>${f.l}<select name="${f.k}">${opts(f.o,f.v)}</select></label>`;
+if(f.t=='area')return`<label>${f.l}<textarea name="${f.k}" rows="3"${r}></textarea></label>`;
+return`<label>${f.l}<input name="${f.k}" type="${f.t||'text'}"${r}${f.m?' minlength="'+f.m+'"':''} value="${esc(f.v||'')}"></label>`}
+function form(title,fs,cb){const d=document.createElement('div');d.className='dlg';
+d.innerHTML=`<form><h2>${title}</h2><br>${fs.map(field).join('')}<div class="row"><button>Guardar</button><button type="button" class="g" id="x">Cancelar</button></div></form>`;
+document.body.append(d);d.querySelector('#x').onclick=()=>d.remove();
+d.querySelector('form').onsubmit=async e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target));try{await cb(f);await load();d.remove();render()}catch(er){alert(er.message)}}}
+const tecName=id=>id?U(id)?.nombre:'Sin asignar';
+
+/* ---------- Login (RF01-RF02) ---------- */
+const HERO=(()=>{let w='';
+for(let r=0;r<3;r++)for(let c=0;c<4;c++)w+=`<rect x="${172+c*26}" y="${54+r*28}" width="14" height="16"/>`;
+for(let r=0;r<2;r++)for(let c=0;c<3;c++)w+=`<rect x="${70+c*26}" y="${102+r*28}" width="14" height="16"/>`;
+for(let r=0;r<2;r++)for(let c=0;c<2;c++)w+=`<rect x="${300+c*26}" y="${122+r*22}" width="14" height="12"/>`;
+return`<svg viewBox="0 0 400 200" aria-hidden="true"><circle cx="340" cy="44" r="26" fill="#f2b705"/><rect x="60" y="90" width="90" height="82" fill="#d4e4e3"/><rect x="160" y="40" width="120" height="132" fill="#f2f4f3"/><rect x="290" y="110" width="70" height="62" fill="#b9d3d2"/><g fill="#12565f">${w}</g><rect x="208" y="140" width="24" height="32" fill="#f2b705"/><rect x="20" y="172" width="360" height="10" rx="5" fill="#0a3238"/><path d="M20 177h360" stroke="#f2b705" stroke-width="2" stroke-dasharray="14 10"/></svg>`})();
+function login(){$('#app').innerHTML=`<div class="login"><div class="hero">${HERO}<h1>Mantenimiento de edificios</h1><p>Reporte daños, asigne técnicos y siga cada reparación en un solo lugar.</p></div>
+<div class="lbox"><h2>Iniciar sesión</h2><br><form id="lf"><label>Correo<input name="c" type="email" required></label><label>Contraseña<input name="p" type="password" required></label><p id="err" class="bad"></p><div class="row"><button>Entrar</button><button type="button" class="g" id="rs">Olvidé mi contraseña</button></div></form>
+<p class="meta"><br>¿No tiene cuenta? Pida al administrador que la registre.<br>Cuentas de prueba (clave 1234): admin@demo.com, usuario@demo.com, tecnico@demo.com</p></div></div>`;
+$('#lf').onsubmit=async e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target));
+try{const r=await api('POST','/login',{correo:f.c,pass:f.p});tok=r.token;me=r.user;await load();tab='inc';render()}catch(er){$('#err').textContent='Correo o contraseña incorrectos. Revise los datos e intente de nuevo.'}};
+$('#rs').onclick=()=>alert('Para restablecer su contraseña, pida al administrador que le asigne una nueva en Usuarios > Cambiar su contraseña.')}
+
+/* ---------- Layout ---------- */
+const IC={inc:'<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+eq:'<path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/>',
+mant:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+rep:'<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/>',
+usr:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+cta:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+out:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'};
+const ic=n=>`<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`;
+const LOGO='<svg viewBox="0 0 48 48" width="36" height="36" aria-hidden="true"><rect width="48" height="48" rx="11" fill="#f2b705"/><rect x="12" y="12" width="24" height="26" fill="#12565f"/><g fill="#f2f4f3"><rect x="16" y="16" width="4" height="4"/><rect x="22" y="16" width="4" height="4"/><rect x="28" y="16" width="4" height="4"/><rect x="16" y="23" width="4" height="4"/><rect x="22" y="23" width="4" height="4"/><rect x="28" y="23" width="4" height="4"/><rect x="21" y="30" width="6" height="8"/></g></svg>';
+function render(){if(!me)return login();me=U(me.id);const R=me.rol;
+const tabs=[['inc','Incidencias']];
+if(R=='Administrador')tabs.push(['eq','Equipos'],['mant','Mantenimiento'],['rep','Reparaciones'],['usr','Usuarios']);
+if(R=='Técnico')tabs.push(['mant','Mantenimiento'],['rep','Reparaciones']);
+tabs.push(['cta','Mi cuenta']);
+const ini=me.nombre.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+$('#app').innerHTML=`<div class="top"><header><div class="brand">${LOGO}<div><h1>Mantenimiento</h1><small>Gestión de edificios</small></div></div>
+<div class="who"><span class="av">${esc(ini)}</span><span class="wn"><b>${esc(me.nombre)}</b><small>${R}</small></span><button class="out" onclick="me=null;tok=null;render()" title="Salir">${ic('out')}<span>Salir</span></button></div></header>
+<nav>${tabs.map(t=>`<button class="${t[0]==tab?'on':''}" onclick="tab='${t[0]}';render()">${ic(t[0])}<span>${t[1]}</span></button>`).join('')}</nav></div><main>${({inc:vInc,eq:vEq,mant:vMant,rep:vRep,usr:vUsr,cta:vCta})[tab]()}</main>`}
+
+/* ---------- Módulo 3: Incidencias ---------- */
+function visibles(){return S.inc.filter(i=>me.rol=='Administrador'||i.por==me.id||i.tec==me.id)}
+function vInc(){const R=me.rol,L=visibles();
+let h=R=='Administrador'?`<div class="stats">${EST.map(e=>`<div><b>${L.filter(i=>i.est==e).length}</b>${e}</div>`).join('')}</div>`:'';
+h+=`<div class="bar"><h2>Incidencias</h2><div class="row" style="margin:0"><button onclick="newInc()">Registrar incidencia</button>${R=='Administrador'?'<button class="g" onclick="dups()">Detectar duplicadas</button>':''}</div></div>`;
+if(!L.length)h+='<p class="meta">Aún no hay incidencias. Registre la primera con el botón de arriba.</p>';
+return h+L.map(i=>{const eq=EQ(i.eq);
+let a='';
+if(R=='Administrador'){a=`<div class="row"><select onchange="setI(${i.id},'tec',this.value)"><option value="">Asignar técnico…</option>${opts(techs(),i.tec)}</select>
+<select title="Criticidad" onchange="setI(${i.id},'crit',this.value)">${opts(CRIT,i.crit)}</select>
+<select title="Prioridad" onchange="setI(${i.id},'prio',this.value)">${opts(PRIO,i.prio)}</select>
+<select title="Equipo" onchange="setI(${i.id},'eq',this.value)"><option value="">Equipo…</option>${opts(S.equipos.map(e=>[e.id,e.nombre]),i.eq)}</select></div>`}
+if(R=='Técnico'&&i.tec==me.id&&i.est!='Cerrada')a=`<div class="row"><select onchange="setI(${i.id},'est',this.value)">${opts(['Asignada','En reparación','Solucionada'],i.est)}</select><button onclick="newRep(${i.id})">Registrar reparación</button></div>`;
+if(i.por==me.id&&i.est=='Solucionada'&&!i.conf)a+=`<div class="row"><button onclick="confirmar(${i.id})">Confirmar solución</button></div>`;
+if(i.por==me.id&&i.est=='Cerrada'&&!i.cal)a+=`<div class="row"><select onchange="setI(${i.id},'cal',this.value)"><option value="">Calificar atención…</option>${opts([5,4,3,2,1].map(n=>[n,n+' de 5']))}</select></div>`;
+return`<div class="card"><h3>INC-${String(i.id).padStart(3,'0')} · ${esc(i.titulo)}</h3>
+<span class="tag c-${i.crit}">Criticidad: ${i.crit}</span><span class="tag">Prioridad: ${i.prio}</span><span class="tag">${i.est}</span>
+<p>${esc(i.desc)}</p><div class="meta">${esc(i.ubic)}${eq?' · '+esc(eq.nombre):''} · Reportó ${esc(U(i.por)?.nombre)} el ${i.creada}<br>Técnico: ${esc(tecName(i.tec))}${i.asig?' (asignada '+i.asig+')':''}${i.cal?' · Calificación: '+i.cal+'/5':''}</div>${a}</div>`}).join('')}
+function newInc(){form('Registrar incidencia',[{k:'titulo',l:'Título',r:1},{k:'desc',l:'Descripción del problema',t:'area',r:1},{k:'ubic',l:'Ubicación',r:1},{k:'eq',l:'Equipo afectado',t:'select',o:[['','No sé / Ninguno'],...S.equipos.map(e=>[e.id,e.nombre])]}],
+f=>api('POST','/inc',{titulo:f.titulo,desc:f.desc,ubic:f.ubic,eq:+f.eq||null}))}
+function setI(id,k,v){fx(()=>api('PATCH','/inc/'+id,{k,v}))}
+function confirmar(id){fx(()=>api('POST','/inc/'+id+'/confirmar'))}
+function dups(){const L=S.inc.filter(i=>i.est!='Cerrada'),P=[];
+L.forEach((a,x)=>L.slice(x+1).forEach(b=>{if((a.eq&&a.eq==b.eq)||a.ubic.toLowerCase()==b.ubic.toLowerCase())P.push([a,b])}));
+const d=document.createElement('div');d.className='dlg';
+d.innerHTML=`<div><h2>Posibles duplicadas</h2><br>${P.length?P.map(([a,b])=>`<div class="card"><b>INC-${a.id}</b> ${esc(a.titulo)}<br><b>INC-${b.id}</b> ${esc(b.titulo)}<div class="row"><button onclick="merge(${a.id},${b.id})">Fusionar en INC-${a.id}</button></div></div>`).join(''):'<p>No se encontraron incidencias con el mismo equipo o ubicación.</p>'}<div class="row"><button class="g" onclick="this.closest('.dlg').remove()">Cerrar</button></div></div>`;document.body.append(d)}
+async function merge(a,b){try{await api('POST','/merge',{a,b});document.querySelector('.dlg').remove();await load();render()}catch(e){alert(e.message)}}
+
+/* ---------- Módulo 6: Reparaciones ---------- */
+function newRep(id){form('Registrar reparación',[{k:'act',l:'Actividades realizadas',t:'area',r:1},{k:'causa',l:'Causa del problema',r:1},{k:'mat',l:'Materiales y repuestos utilizados'},{k:'ini',l:'Inicio',t:'datetime-local',r:1},{k:'fin',l:'Finalización',t:'datetime-local',r:1},{k:'sol',l:'Solución aplicada',t:'area',r:1},{k:'obs',l:'Observaciones'}],
+f=>api('POST','/rep',{inc:id,...f}))}
+function vRep(){const L=S.rep.filter(r=>me.rol=='Administrador'||r.tec==me.id);
+return`<h2>Reparaciones</h2><br>`+(L.length?L.map(r=>`<div class="card"><h3>INC-${String(r.inc).padStart(3,'0')} · ${esc(r.causa)}</h3><p>${esc(r.act)}</p><div class="meta">Solución: ${esc(r.sol)}<br>Materiales: ${esc(r.mat||'—')}<br>${esc(r.ini)} a ${esc(r.fin)} · ${esc(tecName(r.tec))}${r.obs?'<br>Obs.: '+esc(r.obs):''}</div></div>`).join(''):'<p class="meta">No hay reparaciones registradas. Se registran desde una incidencia asignada.</p>')}
+
+/* ---------- Módulo 4: Equipos y fallas ---------- */
+function vEq(){return`<div class="bar"><h2>Equipos</h2><button onclick="newEq()">Registrar equipo</button></div>`+S.equipos.map(e=>{
+const n=S.inc.filter(i=>i.eq==e.id).length,vig=e.vence&&new Date(e.vence)>=new Date();
+return`<div class="card"><h3>${esc(e.nombre)}</h3><div class="meta">${esc(e.tipo)} · ${esc(e.ubic)} · Serie ${esc(e.serie)}</div>
+<p>Incidencias asociadas: <b>${n}</b>${n>=2?' <span class="tag c-Alta">Falla recurrente</span>':''}</p>
+<p>Garantía ${e.gar?esc(e.gar)+' hasta '+esc(e.vence)+': ':'sin registrar'}${e.gar?`<b class="${vig?'ok':'bad'}">${vig?'vigente':'vencida'}</b>`:''}</p>
+<div class="row"><button class="g" onclick="newGar(${e.id})">Registrar garantía</button></div></div>`}).join('')}
+function newEq(){form('Registrar equipo',[{k:'nombre',l:'Nombre',r:1},{k:'tipo',l:'Tipo',r:1},{k:'ubic',l:'Ubicación',r:1},{k:'serie',l:'Número de serie'}],f=>api('POST','/equipos',f))}
+function newGar(id){form('Registrar garantía',[{k:'gar',l:'Proveedor o cobertura',r:1},{k:'vence',l:'Vence el',t:'date',r:1}],f=>api('PATCH','/equipos/'+id,f))}
+
+/* ---------- Módulo 5: Mantenimiento preventivo ---------- */
+function vMant(){const A=me.rol=='Administrador',L=S.mant.filter(m=>A||m.tec==me.id);
+return`<div class="bar"><h2>Mantenimiento preventivo</h2>${A?'<button onclick="newMant()">Programar</button>':''}</div>`+(L.length?L.map(m=>`<div class="card"><h3>${esc(m.tarea)}</h3><div class="meta">${esc(EQ(m.eq)?.nombre)} · ${esc(m.fecha)} · Técnico: ${esc(tecName(m.tec))}</div>
+${m.hecho?`<p class="ok">Ejecutado: ${esc(m.hecho)}</p>`:me.rol=='Técnico'?`<div class="row"><button onclick="execMant(${m.id})">Registrar ejecución</button></div>`:'<p class="meta">Pendiente</p>'}</div>`).join(''):'<p class="meta">No hay mantenimientos programados.</p>')}
+function newMant(){form('Programar mantenimiento',[{k:'eq',l:'Equipo',t:'select',o:S.equipos.map(e=>[e.id,e.nombre])},{k:'tarea',l:'Actividad',r:1},{k:'fecha',l:'Fecha',t:'date',r:1},{k:'tec',l:'Técnico',t:'select',o:techs()}],f=>api('POST','/mant',f))}
+function execMant(id){form('Registrar ejecución',[{k:'h',l:'Actividades realizadas',t:'area',r:1}],f=>api('PATCH','/mant/'+id,{hecho:now()+' · '+f.h}))}
+
+/* ---------- Módulo 2: Usuarios y técnicos ---------- */
+function vUsr(){return`<div class="bar"><h2>Usuarios y técnicos</h2><button onclick="newUsr()">Registrar</button></div>`+S.users.map(u=>`<div class="card"><h3>${esc(u.nombre)}</h3><div class="meta">${esc(u.correo)} · ${u.rol}</div><div class="row"><button class="g" onclick="editUsr(${u.id})">Actualizar información</button>${u.id!=me.id?`<button class="g" onclick="resetUsr(${u.id})">Cambiar su contraseña</button><button class="g" style="color:var(--bad);border-color:var(--bad)" onclick="delUsr(${u.id})">Eliminar</button>`:''}</div></div>`).join('')}
+function newUsr(){form('Registrar usuario o técnico',[{k:'nombre',l:'Nombre completo',r:1},{k:'correo',l:'Correo (con él inicia sesión)',t:'email',r:1},{k:'rol',l:'Rol',t:'select',o:['Usuario','Técnico','Administrador']},{k:'pass',l:'Contraseña inicial (mínimo 6 caracteres)',t:'password',r:1,m:6}],async f=>{await api('POST','/users',f);alert('Cuenta creada. Ya puede iniciar sesión con ese correo y esa contraseña.')})}
+function editUsr(id){const u=U(id);form('Actualizar información',[{k:'nombre',l:'Nombre completo',r:1,v:u.nombre},{k:'correo',l:'Correo',t:'email',r:1,v:u.correo},{k:'rol',l:'Rol',t:'select',o:['Usuario','Técnico','Administrador'],v:u.rol}],f=>api('PATCH','/users/'+id,f))}
+function delUsr(id){const u=U(id);if(confirm('¿Eliminar la cuenta de '+u.nombre+'? Esta acción no se puede deshacer.'))fx(()=>api('DELETE','/users/'+id))}
+function resetUsr(id){form('Nueva contraseña para '+U(id).nombre,[{k:'pass',l:'Nueva contraseña (mínimo 6 caracteres)',t:'password',r:1,m:6}],async f=>{await api('PATCH','/users/'+id,{pass:f.pass});alert('Contraseña actualizada.')})}
+
+/* ---------- Mi cuenta (RF03-RF04) ---------- */
+function vCta(){return`<h2>Mi cuenta</h2><br><div class="card"><p><b>${esc(me.nombre)}</b><br><span class="meta">${esc(me.correo)} · ${me.rol}</span></p>
+<div class="row"><button onclick="chPass()">Cambiar contraseña</button><button class="g" onclick="chMail()">Cambiar correo de verificación</button></div></div>`}
+function chPass(){form('Cambiar contraseña',[{k:'a',l:'Contraseña actual',t:'password',r:1},{k:'n',l:'Nueva contraseña (mínimo 6 caracteres)',t:'password',r:1,m:6},{k:'n2',l:'Repita la nueva contraseña',t:'password',r:1,m:6}],async f=>{if(f.n!==f.n2)throw new Error('Las contraseñas nuevas no coinciden.');await api('POST','/password',{a:f.a,n:f.n});alert('Contraseña actualizada.')})}
+function chMail(){form('Cambiar correo de verificación',[{k:'correo',l:'Nuevo correo',t:'email',r:1}],f=>api('PATCH','/users/'+me.id,{correo:f.correo}))}
+
+render();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+</script>
+</body>
+</html>
