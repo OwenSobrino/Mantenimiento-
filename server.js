@@ -57,19 +57,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Autenticación (RF01-RF04)
 app.post('/api/login', h(async r => {
-  const u = await one('SELECT * FROM usuarios WHERE correo=?', r.body.correo);
+  const u = await one('SELECT * FROM usuarios WHERE LOWER(correo)=?', String(r.body.correo || '').trim().toLowerCase());
   if (!u || !bcrypt.compareSync(r.body.pass || '', u.pass)) fail('Correo o contraseña incorrectos');
   const token = crypto.randomUUID();
   sessions.set(token, u.id);
   return { token, user: pub(u) };
 }));
-app.post('/api/reset', h(async r => {
-  const u = await one('SELECT id FROM usuarios WHERE correo=?', r.body.correo);
-  if (u) await run('UPDATE usuarios SET pass=? WHERE id=?', bcrypt.hashSync('1234', 10), u.id);
-}));
 app.post('/api/password', auth, h(async r => {
   const { a, n } = r.body;
-  if (!bcrypt.compareSync(a || '', r.u.pass) || !n || n.length < 4) fail('La contraseña actual no coincide o la nueva es muy corta.');
+  if (!bcrypt.compareSync(a || '', r.u.pass) || !n || n.length < 6) fail('La contraseña actual no coincide o la nueva tiene menos de 6 caracteres.');
   await run('UPDATE usuarios SET pass=? WHERE id=?', bcrypt.hashSync(n, 10), r.u.id);
 }));
 
@@ -93,15 +89,29 @@ app.get('/api/data', auth, h(async r => {
 }));
 
 // Usuarios y técnicos (RF05-RF08)
+const ROLES = ['Usuario', 'Técnico', 'Administrador'];
 app.post('/api/users', auth, h(async r => {
   admin(r); const b = r.body;
-  await run('INSERT INTO usuarios(nombre,correo,rol,pass) VALUES(?,?,?,?)', b.nombre, b.correo, b.rol, bcrypt.hashSync('1234', 10));
+  const nombre = String(b.nombre || '').trim(), correo = String(b.correo || '').trim().toLowerCase();
+  if (!nombre || !correo) fail('Nombre y correo son obligatorios');
+  if (!ROLES.includes(b.rol)) fail('Rol no válido');
+  if (String(b.pass || '').length < 6) fail('La contraseña debe tener al menos 6 caracteres');
+  await run('INSERT INTO usuarios(nombre,correo,rol,pass) VALUES(?,?,?,?)', nombre, correo, b.rol, bcrypt.hashSync(b.pass, 10));
 }));
 app.patch('/api/users/:id', auth, h(async r => {
-  const id = +r.params.id;
-  if (r.u.rol !== A && id !== r.u.id) fail('No tiene permiso para esta acción');
-  const b = r.body, cur = await one('SELECT * FROM usuarios WHERE id=?', id) || fail('No existe');
-  await run('UPDATE usuarios SET nombre=?, correo=? WHERE id=?', r.u.rol === A && b.nombre ? b.nombre : cur.nombre, b.correo || cur.correo, id);
+  const id = +r.params.id, b = r.body, adm = r.u.rol === A;
+  if (!adm && id !== r.u.id) fail('No tiene permiso para esta acción');
+  const cur = await one('SELECT * FROM usuarios WHERE id=?', id) || fail('No existe');
+  const correo = b.correo ? String(b.correo).trim().toLowerCase() : cur.correo;
+  const nombre = adm && b.nombre ? String(b.nombre).trim() : cur.nombre;
+  const rol = adm && id !== r.u.id && ROLES.includes(b.rol) ? b.rol : cur.rol;
+  let pass = cur.pass;
+  if (b.pass !== undefined) { // el administrador asigna una nueva contraseña a otra cuenta
+    if (!adm || id === r.u.id) fail('Use "Cambiar contraseña" en Mi cuenta');
+    if (String(b.pass).length < 6) fail('La contraseña debe tener al menos 6 caracteres');
+    pass = bcrypt.hashSync(b.pass, 10);
+  }
+  await run('UPDATE usuarios SET nombre=?, correo=?, rol=?, pass=? WHERE id=?', nombre, correo, rol, pass, id);
 }));
 
 // Incidencias (RF09-RF20)
