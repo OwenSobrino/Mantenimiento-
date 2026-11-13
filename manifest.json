@@ -1,0 +1,14 @@
+{
+  "name": "Gestión de mantenimiento de edificios",
+  "short_name": "Mantenimiento",
+  "description": "Registro y seguimiento de incidencias, equipos y mantenimientos.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f2f4f3",
+  "theme_color": "#12565f",
+  "lang": "es",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
