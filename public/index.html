@@ -60,9 +60,9 @@ const U=id=>S.users.find(u=>u.id==id),EQ=id=>S.equipos.find(e=>e.id==id);
 const opts=(a,sel)=>a.map(o=>{const[v,l]=Array.isArray(o)?o:[o,o];return`<option value="${esc(v)}"${v==sel?' selected':''}>${esc(l)}</option>`}).join('');
 const techs=()=>S.users.filter(u=>u.rol=='Técnico').map(u=>[u.id,u.nombre]);
 function field(f){const r=f.r?' required':'';
-if(f.t=='select')return`<label>${f.l}<select name="${f.k}">${opts(f.o)}</select></label>`;
+if(f.t=='select')return`<label>${f.l}<select name="${f.k}">${opts(f.o,f.v)}</select></label>`;
 if(f.t=='area')return`<label>${f.l}<textarea name="${f.k}" rows="3"${r}></textarea></label>`;
-return`<label>${f.l}<input name="${f.k}" type="${f.t||'text'}"${r}></label>`}
+return`<label>${f.l}<input name="${f.k}" type="${f.t||'text'}"${r}${f.m?' minlength="'+f.m+'"':''} value="${esc(f.v||'')}"></label>`}
 function form(title,fs,cb){const d=document.createElement('div');d.className='dlg';
 d.innerHTML=`<form><h2>${title}</h2><br>${fs.map(field).join('')}<div class="row"><button>Guardar</button><button type="button" class="g" id="x">Cancelar</button></div></form>`;
 document.body.append(d);d.querySelector('#x').onclick=()=>d.remove();
@@ -76,7 +76,7 @@ function login(){$('#app').innerHTML=`<div class="login"><h1>Mantenimiento de ed
 <p class="meta"><br>Cuentas de prueba (clave 1234): admin@demo.com, usuario@demo.com, tecnico@demo.com</p></div>`;
 $('#lf').onsubmit=async e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target));
 try{const r=await api('POST','/login',{correo:f.c,pass:f.p});tok=r.token;me=r.user;await load();tab='inc';render()}catch(er){$('#err').textContent='Correo o contraseña incorrectos. Revise los datos e intente de nuevo.'}};
-$('#rs').onclick=()=>form('Restablecer contraseña',[{k:'c',l:'Correo de verificación',t:'email',r:1}],async f=>{await api('POST','/reset',{correo:f.c});alert('Si el correo existe, la contraseña quedó en 1234 (simulación del envío de correo).')})}
+$('#rs').onclick=()=>alert('Para restablecer su contraseña, pida al administrador que le asigne una nueva en Usuarios y técnicos > Cambiar su contraseña.')}
 
 /* ---------- Layout ---------- */
 function render(){if(!me)return login();me=U(me.id);const R=me.rol;
@@ -139,14 +139,15 @@ function newMant(){form('Programar mantenimiento',[{k:'eq',l:'Equipo',t:'select'
 function execMant(id){form('Registrar ejecución',[{k:'h',l:'Actividades realizadas',t:'area',r:1}],f=>api('PATCH','/mant/'+id,{hecho:now()+' · '+f.h}))}
 
 /* ---------- Módulo 2: Usuarios y técnicos ---------- */
-function vUsr(){return`<div class="bar"><h2>Usuarios y técnicos</h2><button onclick="newUsr()">Registrar</button></div><div class="scroll">`+S.users.map(u=>`<div class="card"><h3>${esc(u.nombre)}</h3><div class="meta">${esc(u.correo)} · ${u.rol}</div><div class="row"><button class="g" onclick="editUsr(${u.id})">Actualizar información</button></div></div>`).join('')+'</div>'}
-function newUsr(){form('Registrar usuario o técnico',[{k:'nombre',l:'Nombre completo',r:1},{k:'correo',l:'Correo',t:'email',r:1},{k:'rol',l:'Rol',t:'select',o:['Usuario','Técnico','Administrador']}],f=>api('POST','/users',f))}
-function editUsr(id){form('Actualizar información',[{k:'nombre',l:'Nombre completo',r:1},{k:'correo',l:'Correo',t:'email',r:1}],f=>api('PATCH','/users/'+id,f))}
+function vUsr(){return`<div class="bar"><h2>Usuarios y técnicos</h2><button onclick="newUsr()">Registrar</button></div>`+S.users.map(u=>`<div class="card"><h3>${esc(u.nombre)}</h3><div class="meta">${esc(u.correo)} · ${u.rol}</div><div class="row"><button class="g" onclick="editUsr(${u.id})">Actualizar información</button>${u.id!=me.id?`<button class="g" onclick="resetUsr(${u.id})">Cambiar su contraseña</button>`:''}</div></div>`).join('')}
+function newUsr(){form('Registrar usuario o técnico',[{k:'nombre',l:'Nombre completo',r:1},{k:'correo',l:'Correo (con él inicia sesión)',t:'email',r:1},{k:'rol',l:'Rol',t:'select',o:['Usuario','Técnico','Administrador']},{k:'pass',l:'Contraseña inicial (mínimo 6 caracteres)',t:'password',r:1,m:6}],async f=>{await api('POST','/users',f);alert('Cuenta creada. Ya puede iniciar sesión con ese correo y esa contraseña.')})}
+function editUsr(id){const u=U(id);form('Actualizar información',[{k:'nombre',l:'Nombre completo',r:1,v:u.nombre},{k:'correo',l:'Correo',t:'email',r:1,v:u.correo},{k:'rol',l:'Rol',t:'select',o:['Usuario','Técnico','Administrador'],v:u.rol}],f=>api('PATCH','/users/'+id,f))}
+function resetUsr(id){form('Nueva contraseña para '+U(id).nombre,[{k:'pass',l:'Nueva contraseña (mínimo 6 caracteres)',t:'password',r:1,m:6}],async f=>{await api('PATCH','/users/'+id,{pass:f.pass});alert('Contraseña actualizada.')})}
 
 /* ---------- Mi cuenta (RF03-RF04) ---------- */
 function vCta(){return`<h2>Mi cuenta</h2><br><div class="card"><p><b>${esc(me.nombre)}</b><br><span class="meta">${esc(me.correo)} · ${me.rol}</span></p>
 <div class="row"><button onclick="chPass()">Cambiar contraseña</button><button class="g" onclick="chMail()">Cambiar correo de verificación</button></div></div>`}
-function chPass(){form('Cambiar contraseña',[{k:'a',l:'Contraseña actual',t:'password',r:1},{k:'n',l:'Nueva contraseña (mínimo 4 caracteres)',t:'password',r:1}],async f=>{await api('POST','/password',{a:f.a,n:f.n});alert('Contraseña actualizada.')})}
+function chPass(){form('Cambiar contraseña',[{k:'a',l:'Contraseña actual',t:'password',r:1},{k:'n',l:'Nueva contraseña (mínimo 6 caracteres)',t:'password',r:1,m:6},{k:'n2',l:'Repita la nueva contraseña',t:'password',r:1,m:6}],async f=>{if(f.n!==f.n2)throw new Error('Las contraseñas nuevas no coinciden.');await api('POST','/password',{a:f.a,n:f.n});alert('Contraseña actualizada.')})}
 function chMail(){form('Cambiar correo de verificación',[{k:'correo',l:'Nuevo correo',t:'email',r:1}],f=>api('PATCH','/users/'+me.id,{correo:f.correo}))}
 
 render();
